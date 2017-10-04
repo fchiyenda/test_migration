@@ -28,8 +28,9 @@ def get_source_data(h,u,p,dbname,cdb)
   source_data = querydb("select value from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null")
     mysql_npids = source_data.map {|y|y['value']}
   
-      
-                                                                                                                                                          
+  puts "Create view for query couchdb"
+    system("curl -X PUT http://localhost:5984/dde_person_production/_design/identifiers --data-binary @identifiers.json")    
+                                                                                                                                                     
   puts 'Loading couchdb data ....'
     begin
   	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_design/identifiers/_view/get_all_identifiers")

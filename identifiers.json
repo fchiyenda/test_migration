@@ -1,0 +1,7 @@
+{"_id" : "_design/identifiers",
+	"views" : {
+		"get_all_identifiers" : {
+			"map" : "function(doc){if(doc.type == 'Person'){emit(null,{id: doc._id,identifiers: doc.patient.identifiers})}}"
+		}
+	}
+}
