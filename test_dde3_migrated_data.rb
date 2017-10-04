@@ -32,7 +32,7 @@ def get_source_data(h,u,p,dbname,cdb)
                                                                                                                                                           
   puts 'Loading couchdb data ....'
     begin
-  	  doc = RestClient.post("http://#{h}:5984/#{cdb}/_all_docs?include_docs=true", {"keys":["LJT8Y4","HP6CTG","000265af0b6b6d1d0eae0c85013a5a36","000265af0b6b6d1d0eae0c85013a807b"]}.to_json,{content_type: :json, accept: :json})
+  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_all_docs?include_docs=true")
     rescue RestClient::ExceptionWithResponse
 	 end
    
