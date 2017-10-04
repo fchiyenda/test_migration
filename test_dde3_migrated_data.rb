@@ -21,31 +21,36 @@ def compare_data_with_couchdb
 
 end
 
-def get_source_data(h,u,p,dbname)
+def get_source_data(h,u,p,dbname,cdb)
   connect_to_mysqldb(h,u,p,dbname)
   puts 'Loading mysql data ....'
 
   source_data = querydb("select value from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null")
-      mysql_npids = source_data.map {|y|y['value']}
-      #puts mysql_npids.inspect
-      
+    mysql_npids = source_data.map {|y|y['value']}
   
+      
+                                                                                                                                                          
   puts 'Loading couchdb data ....'
     begin
-  	  doc = RestClient.get("http://#{h}:5984/dde_person_production/_all_docs")
+  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_all_docs?include_docs=true")
     rescue RestClient::ExceptionWithResponse
-	  
-    end
+	 end
  puts 'Parsing couchdb data ...'
     d = JSON.parse(doc)
- puts 'Filtering couchdb data ...'
-    b = d['rows'].select{|y|y['id'].size == 6}
- puts 'Converting couchdb data an array ...'
-    couchdb_npids = b.map{|x|x['id']}.flatten
-  
-  
-  records_not_found = File.new('dde_not_found.log', 'w')
-  tested_npids = File.new('dde_tested_npids.log', 'w')
+    puts 'Filtering couchdb data ...'
+    puts 'Filtering all Primary NPIDs'
+    primary_npids = d['rows'].map {|y|y['doc']['_id']}
+    puts 'Filtering all legacy NPIDs'
+    primary_npids = primary_npids.select{|r|r.size == 6}
+    legacy_npids = d['rows'].map {|s|s['doc']['patient']} 
+    legacy_npids = legacy_npids.compact.map{|r|r['identifiers']}
+    legacy_npids = legacy_npids.flatten
+    legacy_npids = legacy_npids.select{|z|z.size == 6}
+ puts 'Combine legacy NPIDs with Primary'
+    couchdb_npids  = primary_npids + legacy_npids
+ 
+  records_not_found = File.new('log/dde_not_found.log', 'w')
+  tested_npids = File.new('log/dde_tested_npids.log', 'w')
 =begin
   source_data.each do |row|
     npid = row['value']
@@ -75,10 +80,11 @@ h = ARGV[0]
 u = ARGV[1]
 p = ARGV[2]
 dbname = ARGV[3]
+cdb = ARGV[4]
 
-if h.nil? || u.nil? || p.nil? || dbname.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name" '
+if h.nil? || u.nil? || p.nil? || dbname.nil? || cdb.nil? then
+  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name couchdbname" '
   exit
 end
 
-get_source_data(h,u,p,dbname)
+get_source_data(h,u,p,dbname,cdb)
