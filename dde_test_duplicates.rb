@@ -59,7 +59,7 @@ def check_duplicates(h,u,p,db)
     end 
     i += 1
   end
-  log = File.new('duplicate.log', 'w')
+  log = File.new('log/duplicate.log', 'w')
   log.syswrite("Records not Found \n #{npids_not_found} \n\n One Record Found \n #{npids_1_record_found} \n\n Two or more records found \n #{npids_2_or_more_records_found}")
   puts "Records checked #{i}: Records not found #{n}: Record found with one record #{j}: Records Found >2 #{k}"
 

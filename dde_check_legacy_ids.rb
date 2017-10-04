@@ -31,7 +31,7 @@ def check_legacy_idz(h,u,p,dbname)
   puts 'Getting All Legacy Idz'
   person_ids = querydb('select t.value value,group_concat(p.identifier) legacy, data from kch_reg.t1 t join kch_reg.patient_identifier p on t.patient_id = p.patient_id where p.voided = 0 and p.identifier_type <> 3 group by p.patient_id')
   #create file to record ids
-  	non_matched_legacy = File.new('legacy.log','w')
+  	non_matched_legacy = File.new('log/legacy.log','w')
     i = 1
     f = 0
 

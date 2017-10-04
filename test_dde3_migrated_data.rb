@@ -32,11 +32,12 @@ def get_source_data(h,u,p,dbname,cdb)
                                                                                                                                                           
   puts 'Loading couchdb data ....'
     begin
-  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_all_docs?include_docs=true")
+  	  doc = RestClient.post("http://#{h}:5984/#{cdb}/_all_docs?include_docs=true", {"keys":["LJT8Y4","HP6CTG","000265af0b6b6d1d0eae0c85013a5a36","000265af0b6b6d1d0eae0c85013a807b"]}.to_json,{content_type: :json, accept: :json})
     rescue RestClient::ExceptionWithResponse
 	 end
+   
  puts 'Parsing couchdb data ...'
-    d = JSON.parse(doc)
+    d = JSON.parse(doc.body)
     puts 'Filtering couchdb data ...'
     puts 'Filtering all Primary NPIDs'
     primary_npids = d['rows'].map {|y|y['doc']['_id']}

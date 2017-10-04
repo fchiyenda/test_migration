@@ -31,107 +31,20 @@ def get_source_data(h,u,p,dbname)
   n = 0
   f = 0
 
-  log = File.new("dde_v1_migration.log", "w")
-  records_not_found = File.new('dde_v1_not_found.log', 'w')
-  tested_npids = File.new('dde_v1_tested_npids.log', 'w')
+  log = File.new("log/dde_v1_migration.log", "w")
+  records_not_found = File.new('log/dde_v1_not_found.log', 'w')
+  tested_npids = File.new('log/dde_v1_tested_npids.log', 'w')
 
   source_data.each do |row|
 		npid = row['value']
-		#puts row['data']
-		#puts '#####'
 		if row['data'] != nil then
 			mysql_client_data = JSON.parse(row['data'])
 			puts "Testing #{npid} ...record num #{i}"
 			tested_npids.syswrite("'#{npid}',")
-			#client = Elasticsearch::Client.new url: 'http://192.168.12.70:9200'
-			#puts 'I am done connecting'
-			#es_client = client.search index: 'dde', body:{query:{match:{_id: npid}}}
-			#es_client_data = es_client['hits']['hits'][0]['_source']
-			#puts es_client_data
-			#puts 'I am done searching'
 		else
 			next
 		end
-=begin
 
-		#Create names hash
-		es_names = es_client_data['names']
-
-		#Create attributes hash
-		es_attributes = es_client_data['person_attributes']
-
-		#Create patient identifier hash
-		es_patient_identifiers = es_client_data['patient']['identifiers']
-
-		#Create birthdate hash
-		es_patient_dob = es_client_data['birthdate']
-
-
-		# Remove non required fields
-		es_names.delete('family_name_code')
-		es_names.delete('given_name_code')
-
-
-		# compare names
-		puts es_names
-		puts mysql_client_data['names']
-		if mysql_client_data['names'] == es_names then
-			puts "Names have Matched"
-		else
-			puts "Names did not Match"
-		end
-
-		#Compare attributes
-		puts es_attributes
-		puts mysql_client_data['attributes']
-		if mysql_client_data['attributes'] == es_attributes then
-			puts "Attributes have Matched"
-		else
-			puts "Attributes did not Match"
-		end
-
-		#Compare identifiers
-		puts es_patient_identifiers
-		puts mysql_client_data['patient']['identifiers']
-		if mysql_client_data['patient']['identifiers'] == es_patient_identifiers then
-			puts "Patient attributes have Matched"
-		else
-			puts "Patient attributes did not Match"
-		end
-
-		#Compare birthdate
-		puts es_patient_dob
-		puts mysql_client_data['birthdate']
-		if mysql_client_data['birthdate'] == es_patient_dob then
-			puts "Patient DOB Matched"
-		else
-			puts "Patient DOB did not Match"
-		end
-
-		#Compare gender
-		puts es_client_data['gender']
-		puts mysql_client_data['gender']
-		if mysql_client_data['gender'] == es_client_data['gender'] then
-			puts 'Gender Matched'
-		else
-			puts 'Gender did not Match'
-		end
-
-		#Compare birthdate Estimated
-		puts es_client_data['birthdate_estimated']
-		puts mysql_client_data['birthdate_estimated']
-		if mysql_client_data['birthdate_estimated'] = 1 then
-			value = true
-		elsif mysql_client_data['birthdate_estimated'] = 0 then
-			value = false
-		end
-  		if value == es_client_data['birthdate_estimated']
-  			puts 'birthdate_estimated Matched'
-  		else
-  			puts 'birthdate_estimated did not Match'
-  		end
-
-=end   
 	begin
 	  doc = RestClient.get("http://#{h}:5984/dde_person_production_bak/#{npid}")
 	rescue RestClient::ExceptionWithResponse => err
