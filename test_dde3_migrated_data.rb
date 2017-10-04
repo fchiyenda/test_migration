@@ -32,24 +32,22 @@ def get_source_data(h,u,p,dbname,cdb)
                                                                                                                                                           
   puts 'Loading couchdb data ....'
     begin
-  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_all_docs?include_docs=true")
+  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_design/identifiers/_view/get_all_identifiers")
     rescue RestClient::ExceptionWithResponse
 	 end
-   
  puts 'Parsing couchdb data ...'
     d = JSON.parse(doc.body)
     puts 'Filtering couchdb data ...'
     puts 'Filtering all Primary NPIDs'
-    primary_npids = d['rows'].map {|y|y['doc']['_id']}
+    primary_npids = d['rows'].map {|y|y['value']['id']}
     puts 'Filtering all legacy NPIDs'
     primary_npids = primary_npids.select{|r|r.size == 6}
-    legacy_npids = d['rows'].map {|s|s['doc']['patient']} 
-    legacy_npids = legacy_npids.compact.map{|r|r['identifiers']}
+    legacy_npids = d['rows'].map {|s|s['value']['identifiers']} 
     legacy_npids = legacy_npids.flatten
     legacy_npids = legacy_npids.select{|z|z.size == 6}
- puts 'Combine legacy NPIDs with Primary'
+    puts 'Combine legacy NPIDs with Primary'
     couchdb_npids  = primary_npids + legacy_npids
- 
+
   records_not_found = File.new('log/dde_not_found.log', 'w')
   tested_npids = File.new('log/dde_tested_npids.log', 'w')
 =begin

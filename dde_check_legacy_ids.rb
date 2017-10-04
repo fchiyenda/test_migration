@@ -51,9 +51,10 @@ def check_legacy_idz(h,u,p,dbname)
 	  puts couchdb_data['patient']['identifiers'].inspect	
       larry = row['legacy'].split(',').map{ |s|s.to_s}     
       puts larry.inspect
-      if larry.to_a.sort != couchdb_data['patient']['identifiers'].to_a.sort then
+      not_present_legacy_npids = larry.to_a - couchdb_data['patient']['identifiers'].to_a
+      if not_present_legacy_npids.size != 0 then
       	puts "Some legacy ids did not match for #{npid}"
-      	non_matched_legacy.syswrite("#{npid} \n")
+      	non_matched_legacy.syswrite("#{npid} did not match #{not_present_legacy_npids}\n")
         f += 1
       end
     i += 1

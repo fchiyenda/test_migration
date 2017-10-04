@@ -20,7 +20,7 @@ def connect_to_mysqldb(h,u,p,dbname)
 end
 
 
-def check_duplicates(h,u,p,db)
+def check_duplicates(h,u,p,db,dde_index)
   connect_to_mysqldb(h,u,p,db)
   puts "Getting duplicate data from database"
   mysql_data = querydb('select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 group by value having count(n.value) > 1')
@@ -38,7 +38,7 @@ def check_duplicates(h,u,p,db)
   mysql_data.each do |row|
     npid = row['value']
     puts "Testing #{npid} ..record #{i}"
-    es_client = client.search index: 'dde', body:{query:{match:{ _all: npid}}}
+    es_client = client.search index: dde_index, body:{query:{match:{ _all: npid}}}
     puts es_client['hits']['total']
 
     case es_client['hits']['total']
@@ -69,11 +69,12 @@ h = ARGV[0]
 u = ARGV[1]
 p = ARGV[2]
 db = ARGV[3]
+dde_index = ARGV[4]
 
-if h.nil? || u.nil? || p.nil? || db.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name"'
+if h.nil? || u.nil? || p.nil? || db.nil? || dde_index.nil? then
+  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name dde_index"'
   exit
 end
 
-check_duplicates(h,u,p,db)
+check_duplicates(h,u,p,db,dde_index)
 
