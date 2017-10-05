@@ -26,7 +26,7 @@ def get_source_data(h,u,p,dbname,couchdb)
   connect_to_mysqldb(h,u,p,dbname)
   puts 'Loading mysql data ....'
 
-  source_data = querydb("select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null")
+  source_data = querydb("select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null limit 100")
 
   total_records = source_data.count
 
@@ -138,14 +138,14 @@ def get_source_data(h,u,p,dbname,couchdb)
     end
   end
   i += 1
-  printf("\rPercentage Complete: %.1f%", (i/total_records*100))
- 
+  printf("\rPercentage Complete: %.1f%", (i/total_records*100)) 
 end
  log.syswrite("Migration Summary \nNumber of Records Categorized by problems: \n")
- log.syswrite(group_problems_found.uniq.map{|x| [x,group_problems_found.count(x)]}.to_h)
- #log.syswrite(group_npids.each{|x,y|[x,group_npids.count(y)]}.to_h)
+ #log.syswrite(group_problems_found.uniq.map{|x| [x,group_problems_found.count(x)]}.to_h)
+ b = group_npids.map{|x,y|[x => y.size ]}
+ log.syswrite(JSON.pretty_generate(b))
  log.syswrite("\n \n \n NPIDs affected grouped by Field: \n \n \n")
- log.syswrite(group_npids.each{|z,w| "\n \n #{z}  #{w} \n \n"})
+ log.syswrite(JSON.pretty_generate(group_npids))
  puts "\n Checked #{i.to_i} records : found #{n} problems : records not found #{f}  "
 end
 
