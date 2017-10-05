@@ -26,8 +26,11 @@ def get_source_data(h,u,p,dbname,couchdb)
   connect_to_mysqldb(h,u,p,dbname)
   puts 'Loading mysql data ....'
 
-  source_data = querydb("select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0")
-  i = 0
+  source_data = querydb("select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null limit 100")
+
+  total_records = source_data.count
+
+  i = 0.0
   n = 0
   f = 0
 
@@ -36,11 +39,13 @@ def get_source_data(h,u,p,dbname,couchdb)
   tested_npids = File.new('log/dde_completeness_tested_npids.log', 'w')
 
   group_problems_found = []
+  group_npids = Hash.new { |hash, key| hash[key] = []} #Prepare hash to store arrays
+
   source_data.each do |row|
 		npid = row['value']
 		if row['data'] != nil then
 			mysql_client_data = JSON.parse(row['data'])
-			puts "Testing #{npid} ...record num #{i}"
+			#puts "Testing #{npid} ...record num #{i}"
 			tested_npids.syswrite("'#{npid}',")
 		else
 			next
@@ -48,11 +53,12 @@ def get_source_data(h,u,p,dbname,couchdb)
 
 	begin
 	  doc = RestClient.get("http://#{h}:5984/#{couchdb}/#{npid}")
-	rescue RestClient::ExceptionWithResponse => err
-	  puts "#{npid} not found!"
+	rescue RestClient::ExceptionWithResponse
+	  #puts "#{npid} not found!"
   	  records_not_found.syswrite("'#{npid}',")
   	  f += 1
   	  i += 1
+  	  printf("\rPercentage Complete: %.1f%",(i/total_records*100))
       next 
 	end
 
@@ -97,46 +103,52 @@ def get_source_data(h,u,p,dbname,couchdb)
 	  when 'identifiers','addresses','attributes','names'
 		mysql_client_data[key].each do |k,v|
 		  if couchdb_data[key][k].to_s.strip != v.to_s.strip then
-		  	puts "#{k} did not match for #{npid}"
+		  	#puts "#{k} did not match for #{npid}"
             group_problems_found << k
-		    log.syswrite("#{k} did not match for #{npid} \n")
+            group_npids[k].push npid
+            #log.syswrite("#{k} did not match for #{npid} \n")
 		    n += 1
 		  end
 	    end
 	  when 'patient' #Separated because of array complication
 	    if couchdb_data[key].nil? then
-	  	  puts "#{key} did not match for #{npid}"
+	  	  #puts "#{key} did not match for #{npid}"
 	  	  group_problems_found << key
-		  log.syswrite("#{key} did not match for #{npid} \n")
+	  	  group_npids[key].push npid
+		  #log.syswrite("#{key} did not match for #{npid} \n")
 		  n += 1
 	  	else
 	  	  mysql_client_data[key].each do |k,v|
 	  	    if couchdb_data[key][k][0].to_s.strip != v.to_s.strip then
-		  	  puts "#{k} did not match for #{npid}"
+		  	  #puts "#{k} did not match for #{npid}"
 		  	  group_problems_found << k
-		      log.syswrite("#{k} did not match for #{npid} \n")
+		  	  group_npids[k].push npid 
+		      #log.syswrite("#{k} did not match for #{npid} \n")
 		      n += 1
 		    end
 	      end
 	    end
       else
-		puts "#{key} did not match for #{npid}"
+		#puts "#{key} did not match for #{npid}"
 		group_problems_found << key
-		log.syswrite("#{key} did not match for #{npid} \n")
+		group_npids[key].push npid
+		#log.syswrite("#{key} did not match for #{npid} \n")
 	    n += 1
 	  end
     end
   end
-
-    i += 1
+  i += 1
+  printf("\rPercentage Complete: %.1f%", (i/total_records*100))
+ 
 end
+ log.syswrite("Migration Summary \nNumber of Records Categorized by problems: \n")
  log.syswrite(group_problems_found.uniq.map{|x| [x,group_problems_found.count(x)]}.to_h)
- puts "Checked #{i} records : found #{n} problems : records not found #{f}  "
+ #log.syswrite(group_npids.each{|x,y|[x,group_npids.count(y)]}.to_h)
+ log.syswrite("\n \n \n NPIDs affected grouped by Field: \n \n \n")
+ log.syswrite(group_npids.each{|z,w| "\n \n #{z}  #{w} \n \n"})
+ puts "\n Checked #{i.to_i} records : found #{n} problems : records not found #{f}  "
 end
 
-def compare_data
-
-end
 #Start program
 
 #Get parameters from terminal
@@ -147,7 +159,7 @@ dbname = ARGV[3]
 couchdb = ARGV[4]
 
 if h.nil? || u.nil? || p.nil? || dbname.nil? || couchdb.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name" couchdb '
+  puts 'Please execute command as "ruby test_dde3_migrated_data_completeness_check.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name" couchdb '
   exit
 end
 
