@@ -4,7 +4,6 @@ require 'rubygems'
 require 'mysql2'
 require 'rest-client'
 require 'json'
-#require 'elasticsearch'
 
 def dbconnect(host,user,pwd,db)
   @cnn = Mysql2::Client.new(:host => "#{host}", :username => "#{user}",:password => "#{pwd}",:database => "#{db}")
@@ -45,7 +44,6 @@ def get_source_data(h,u,p,dbname,couchdb)
 		npid = row['value']
 		if row['data'] != nil then
 			mysql_client_data = JSON.parse(row['data'])
-			#puts "Testing #{npid} ...record num #{i}"
 			tested_npids.syswrite("'#{npid}',")
 		else
 			next
@@ -54,8 +52,7 @@ def get_source_data(h,u,p,dbname,couchdb)
 	begin
 	  doc = RestClient.get("http://#{h}:5984/#{couchdb}/#{npid}")
 	rescue RestClient::ExceptionWithResponse
-	  #puts "#{npid} not found!"
-  	  records_not_found.syswrite("'#{npid}',")
+	    records_not_found.syswrite("'#{npid}',")
   	  f += 1
   	  i += 1
   	  printf("\rPercentage Complete: %.1f%",(i/total_records*100))
@@ -96,44 +93,30 @@ def get_source_data(h,u,p,dbname,couchdb)
 
 		#Check First level Names,Cellphone Number and Gender
   mysql_client_data.each do |key,value|
-	  #puts mysql_client_data[key]
-	  #puts couchdb_data[key]
-    if mysql_client_data[key].to_s.strip != couchdb_data[key].to_s.strip then #If data does not match check further
+	  if mysql_client_data[key].to_s.strip != couchdb_data[key].to_s.strip then #If data does not match check further
 	  case key 
 	  when 'identifiers','addresses','attributes','names'
 		mysql_client_data[key].each do |k,v|
 		  if couchdb_data[key][k].to_s.strip != v.to_s.strip then
-		  	#puts "#{k} did not match for #{npid}"
-            group_problems_found << k
-            group_npids[k].push npid
-            #log.syswrite("#{k} did not match for #{npid} \n")
-		    n += 1
+		  	  group_npids[k].push npid
+        n += 1
 		  end
 	    end
 	  when 'patient' #Separated because of array complication
 	    if couchdb_data[key].nil? then
-	  	  #puts "#{key} did not match for #{npid}"
-	  	  group_problems_found << key
 	  	  group_npids[key].push npid
-		  #log.syswrite("#{key} did not match for #{npid} \n")
 		  n += 1
 	  	else
 	  	  mysql_client_data[key].each do |k,v|
 	  	    if couchdb_data[key][k][0].to_s.strip != v.to_s.strip then
-		  	  #puts "#{k} did not match for #{npid}"
-		  	  group_problems_found << k
 		  	  group_npids[k].push npid 
-		      #log.syswrite("#{k} did not match for #{npid} \n")
 		      n += 1
 		    end
 	      end
 	    end
       else
-		#puts "#{key} did not match for #{npid}"
-		group_problems_found << key
 		group_npids[key].push npid
-		#log.syswrite("#{key} did not match for #{npid} \n")
-	    n += 1
+		  n += 1
 	  end
     end
   end
@@ -141,7 +124,6 @@ def get_source_data(h,u,p,dbname,couchdb)
   printf("\rPercentage Complete: %.1f%", (i/total_records*100)) 
 end
  log.syswrite("Migration Summary \nNumber of Records Categorized by problems: \n")
- #log.syswrite(group_problems_found.uniq.map{|x| [x,group_problems_found.count(x)]}.to_h)
  b = group_npids.map{|x,y|[x => y.size ]}
  log.syswrite(JSON.pretty_generate(b))
  log.syswrite("\n \n \n NPIDs affected grouped by Field: \n \n \n")
