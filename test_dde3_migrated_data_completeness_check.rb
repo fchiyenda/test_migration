@@ -26,7 +26,7 @@ def get_source_data(h,u,p,dbname,couchdb)
   connect_to_mysqldb(h,u,p,dbname)
   puts 'Loading mysql data ....'
 
-  source_data = querydb("select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null limit 100")
+  source_data = querydb("select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null")
 
   total_records = source_data.count
 
