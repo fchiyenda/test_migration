@@ -22,19 +22,20 @@ def compare_data_with_couchdb
 
 end
 
-def get_source_data(h,u,p,dbname)
+def get_source_data(h,u,p,dbname,couchdb)
   connect_to_mysqldb(h,u,p,dbname)
   puts 'Loading mysql data ....'
 
-  source_data = querydb("select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 limit 10")
+  source_data = querydb("select value, data from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0")
   i = 0
   n = 0
   f = 0
 
-  log = File.new("log/dde_v1_migration.log", "w")
-  records_not_found = File.new('log/dde_v1_not_found.log', 'w')
-  tested_npids = File.new('log/dde_v1_tested_npids.log', 'w')
+  log = File.new("log/dde_completeness_migration.log", "w")
+  records_not_found = File.new('log/dde_completeness_not_found.log', 'w')
+  tested_npids = File.new('log/dde_completeness_tested_npids.log', 'w')
 
+  group_problems_found = []
   source_data.each do |row|
 		npid = row['value']
 		if row['data'] != nil then
@@ -46,7 +47,7 @@ def get_source_data(h,u,p,dbname)
 		end
 
 	begin
-	  doc = RestClient.get("http://#{h}:5984/dde_person_production_bak/#{npid}")
+	  doc = RestClient.get("http://#{h}:5984/#{couchdb}/#{npid}")
 	rescue RestClient::ExceptionWithResponse => err
 	  puts "#{npid} not found!"
   	  records_not_found.syswrite("'#{npid}',")
@@ -54,7 +55,7 @@ def get_source_data(h,u,p,dbname)
   	  i += 1
       next 
 	end
-=begin
+
 	couchdb_data = JSON.parse(doc)
 
 
@@ -97,6 +98,7 @@ def get_source_data(h,u,p,dbname)
 		mysql_client_data[key].each do |k,v|
 		  if couchdb_data[key][k].to_s.strip != v.to_s.strip then
 		  	puts "#{k} did not match for #{npid}"
+            group_problems_found << k
 		    log.syswrite("#{k} did not match for #{npid} \n")
 		    n += 1
 		  end
@@ -104,12 +106,14 @@ def get_source_data(h,u,p,dbname)
 	  when 'patient' #Separated because of array complication
 	    if couchdb_data[key].nil? then
 	  	  puts "#{key} did not match for #{npid}"
+	  	  group_problems_found << key
 		  log.syswrite("#{key} did not match for #{npid} \n")
 		  n += 1
 	  	else
 	  	  mysql_client_data[key].each do |k,v|
 	  	    if couchdb_data[key][k][0].to_s.strip != v.to_s.strip then
 		  	  puts "#{k} did not match for #{npid}"
+		  	  group_problems_found << k
 		      log.syswrite("#{k} did not match for #{npid} \n")
 		      n += 1
 		    end
@@ -117,14 +121,16 @@ def get_source_data(h,u,p,dbname)
 	    end
       else
 		puts "#{key} did not match for #{npid}"
+		group_problems_found << key
 		log.syswrite("#{key} did not match for #{npid} \n")
 	    n += 1
 	  end
     end
   end
-=end
+
     i += 1
 end
+ log.syswrite(group_problems_found.uniq.map{|x| [x,group_problems_found.count(x)]}.to_h)
  puts "Checked #{i} records : found #{n} problems : records not found #{f}  "
 end
 
@@ -138,10 +144,11 @@ h = ARGV[0]
 u = ARGV[1]
 p = ARGV[2]
 dbname = ARGV[3]
+couchdb = ARGV[4]
 
-if h.nil? || u.nil? || p.nil? || dbname.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name" '
+if h.nil? || u.nil? || p.nil? || dbname.nil? || couchdb.nil? then
+  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name" couchdb '
   exit
 end
 
-get_source_data(h,u,p,dbname)
+get_source_data(h,u,p,dbname,couchdb)

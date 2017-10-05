@@ -37,7 +37,7 @@ def get_source_data(h,u,p,dbname,cdb)
     rescue RestClient::ExceptionWithResponse
 	 end
  puts 'Parsing couchdb data ...'
-    d = JSON.parse(doc.body)
+    d = JSON.parse(doc)
     puts 'Filtering couchdb data ...'
     puts 'Filtering all Primary NPIDs'
     primary_npids = d['rows'].map {|y|y['value']['id']}
