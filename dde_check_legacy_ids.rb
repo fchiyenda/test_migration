@@ -19,17 +19,17 @@ def connect_to_mysqldb(h,u,p)
 end
 
 
-def check_legacy_idz(h,u,p,dbname)
+def check_legacy_idz(h,u,p,dde_db,app_db)
   connect_to_mysqldb(h,u,p)
   #get all ids
   #Create temporary table t1
   puts 'Drop temporary table t1'
-  querydb('drop table if exists dde_proxy.t1')
+  querydb("drop table if exists #{dde_db}.t1")
   puts 'Create temporary table t1'
-  querydb('create temporary table kch_reg.t1 as (select patient_id,value,p.data as data from dde_proxy.national_patient_identifiers n join dde_proxy.people p on n.person_id = p.id join kch_reg.patient_identifier i on n.value = i.identifier where p.data is not null)')
+  querydb('create temporary table #{app_db}.t1 as (select patient_id,value,p.data as data from #{dde_db}.national_patient_identifiers n join #{dde_db}.people p on n.person_id = p.id join #{app_db.patient_identifier i on n.value = i.identifier where p.data is not null)')
 
   puts 'Getting All Legacy Idz'
-  person_ids = querydb('select t.value value,group_concat(p.identifier) legacy, data from kch_reg.t1 t join kch_reg.patient_identifier p on t.patient_id = p.patient_id where p.voided = 0 and p.identifier_type <> 3 group by p.patient_id')
+  person_ids = querydb('select t.value value,group_concat(p.identifier) legacy, data from #{app_db}.t1 t join #{app_db.patient_identifier p on t.patient_id = p.patient_id where p.voided = 0 and p.identifier_type <> 3 group by p.patient_id')
   #create file to record ids
   	non_matched_legacy = File.new('log/legacy.log','w')
     i = 1
@@ -66,11 +66,12 @@ end
 h = ARGV[0]
 u = ARGV[1]
 p = ARGV[2]
-dbname = ARGV[3]
+dde_db = ARGV[3]
+app_db = ARGV[4]
 
-if h.nil? || u.nil? || p.nil? || dbname.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username password"'
+if h.nil? || u.nil? || p.nil? || dde_db.nil? app_db.nil? then
+  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address username password dde1_db app_db"'
   exit
 end
 
-check_legacy_idz(h,u,p,dbname)
+check_legacy_idz(h,u,p,dde_db,app_db)
