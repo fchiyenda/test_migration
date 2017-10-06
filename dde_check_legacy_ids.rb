@@ -26,10 +26,10 @@ def check_legacy_idz(h,u,p,dde_db,app_db)
   puts 'Drop temporary table t1'
   querydb("drop table if exists #{dde_db}.t1")
   puts 'Create temporary table t1'
-  querydb('create temporary table #{app_db}.t1 as (select patient_id,value,p.data as data from #{dde_db}.national_patient_identifiers n join #{dde_db}.people p on n.person_id = p.id join #{app_db.patient_identifier i on n.value = i.identifier where p.data is not null)')
+  querydb("create temporary table #{app_db}.t1 as (select patient_id,value,p.data as data from #{dde_db}.national_patient_identifiers n join #{dde_db}.people p on n.person_id = p.id join #{app_db}.patient_identifier i on n.value = i.identifier where p.data is not null)")
 
   puts 'Getting All Legacy Idz'
-  person_ids = querydb('select t.value value,group_concat(p.identifier) legacy, data from #{app_db}.t1 t join #{app_db.patient_identifier p on t.patient_id = p.patient_id where p.voided = 0 and p.identifier_type <> 3 group by p.patient_id')
+  person_ids = querydb("select t.value value,group_concat(p.identifier) legacy, data from #{app_db}.t1 t join #{app_db}.patient_identifier p on t.patient_id = p.patient_id where p.voided = 0 and p.identifier_type <> 3 group by p.patient_id")
   #create file to record ids
   	non_matched_legacy = File.new('log/legacy.log','w')
     i = 1
