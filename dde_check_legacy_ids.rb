@@ -19,7 +19,7 @@ def connect_to_mysqldb(h,u,p)
 end
 
 
-def check_legacy_idz(h,u,p,dde_db,app_db)
+def check_legacy_idz(h,u,p,dde_db,app_db,cdb)
   connect_to_mysqldb(h,u,p)
   #get all ids
   #Create temporary table t1
@@ -41,7 +41,7 @@ def check_legacy_idz(h,u,p,dde_db,app_db)
 
   	#Get equivalent record in couchdb
     begin
-	    doc = RestClient.get("http://#{h}:5984/#{dbname}/#{npid}")
+	    doc = RestClient.get("http://#{h}:5984/#{cdb}/#{npid}")
 	  rescue RestClient::ExceptionWithResponse
 	    puts "#{npid} not found!"
       i += 1
@@ -68,10 +68,11 @@ u = ARGV[1]
 p = ARGV[2]
 dde_db = ARGV[3]
 app_db = ARGV[4]
+cdb = ARGV[4]
 
-if h.nil? || u.nil? || p.nil? || dde_db.nil? || app_db.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address username password dde1_db app_db"'
+if h.nil? || u.nil? || p.nil? || dde_db.nil? || app_db.nil? || cdb.nil? then
+  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address username password dde1_db app_db couchdb_name"'
   exit
 end
 
-check_legacy_idz(h,u,p,dde_db,app_db)
+check_legacy_idz(h,u,p,dde_db,app_db,cdb)
