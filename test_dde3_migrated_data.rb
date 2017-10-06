@@ -29,7 +29,7 @@ def get_source_data(h,u,p,dbname,cdb)
     mysql_npids = source_data.map {|y|y['value']}
   
   puts "Create view for query couchdb"
-    system("curl -X PUT http://localhost:5984/dde_person_production/_design/identifiers --data-binary @identifiers.json")    
+    system("curl -X PUT http://#{h}:5984/#{cdb}/_design/identifiers --data-binary @identifiers.json")    
                                                                                                                                                      
   puts 'Loading couchdb data ....'
     begin
