@@ -41,8 +41,8 @@ def check_legacy_idz(h,u,p,dde_db,app_db,cdb)
 
   	#Get equivalent record in couchdb
     begin
-	    doc = RestClient.get("http://#{h}:5984/#{cdb}/#{npid}")
-	  rescue RestClient::ExceptionWithResponse
+        doc = RestClient.get("http://#{h}:5984/#{cdb}/#{npid}")
+    rescue RestClient::ExceptionWithResponse
 	    puts "#{npid} not found!"
       i += 1
   	  next 
@@ -68,7 +68,7 @@ u = ARGV[1]
 p = ARGV[2]
 dde_db = ARGV[3]
 app_db = ARGV[4]
-cdb = ARGV[4]
+cdb = ARGV[5]
 
 if h.nil? || u.nil? || p.nil? || dde_db.nil? || app_db.nil? || cdb.nil? then
   puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address username password dde1_db app_db couchdb_name"'
