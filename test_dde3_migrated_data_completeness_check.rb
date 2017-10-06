@@ -37,7 +37,6 @@ def get_source_data(h,u,p,dbname,couchdb)
   records_not_found = File.new('log/dde_completeness_not_found.log', 'w')
   tested_npids = File.new('log/dde_completeness_tested_npids.log', 'w')
 
-  group_problems_found = []
   group_npids = Hash.new { |hash, key| hash[key] = []} #Prepare hash to store arrays
 
   source_data.each do |row|
