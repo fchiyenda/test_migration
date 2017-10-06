@@ -69,7 +69,7 @@ p = ARGV[2]
 dde_db = ARGV[3]
 app_db = ARGV[4]
 
-if h.nil? || u.nil? || p.nil? || dde_db.nil? app_db.nil? then
+if h.nil? || u.nil? || p.nil? || dde_db.nil? || app_db.nil? then
   puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address username password dde1_db app_db"'
   exit
 end
