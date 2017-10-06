@@ -21,7 +21,7 @@ def compare_data_with_couchdb
 
 end
 
-def get_source_data(h,u,p,dbname,cdb)
+def get_source_data(h,u,p,dbname,cdbusr,cdbpwd,cdb)
   connect_to_mysqldb(h,u,p,dbname)
   puts 'Loading mysql data ....'
 
@@ -29,7 +29,7 @@ def get_source_data(h,u,p,dbname,cdb)
     mysql_npids = source_data.map {|y|y['value']}
   
   puts "Create view for query couchdb"
-    system("curl -X PUT http://#{h}:5984/#{cdb}/_design/identifiers --data-binary @identifiers.json")    
+    system("curl -X PUT http://#{cdbusr}:#{cdbpwd}@#{h}:5984/#{cdb}/_design/identifiers --data-binary @identifiers.json")    
                                                                                                                                                      
   puts 'Loading couchdb data ....'
     begin
@@ -80,11 +80,13 @@ h = ARGV[0]
 u = ARGV[1]
 p = ARGV[2]
 dbname = ARGV[3]
-cdb = ARGV[4]
+cdbusr = ARGV[4]
+cdbpwd = ARGV[5]
+cdb = ARGV[6]
 
-if h.nil? || u.nil? || p.nil? || dbname.nil? || cdb.nil? then
+if h.nil? || u.nil? || p.nil? || dbname.nil? || cdb.nil? || cdbusr.nil? || cdbpwd.nil? then
   puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name couchdbname" '
   exit
 end
 
-get_source_data(h,u,p,dbname,cdb)
+get_source_data(h,u,p,dbname,cdbusr,cdbpwd,cdb)
