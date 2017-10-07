@@ -40,6 +40,7 @@ GEM
       tzinfo (~> 1.1)
     arel (7.1.4)
     builder (3.2.3)
+    colorize (0.7.7)
     concurrent-ruby (1.0.5)
     domain_name (0.5.20170223)
       unf (>= 0.0.5, < 1.0.0)
@@ -130,6 +131,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  colorize
   elasticsearch
   json
   mysql2

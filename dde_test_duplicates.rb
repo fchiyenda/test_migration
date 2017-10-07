@@ -4,6 +4,7 @@ require 'elasticsearch'
 require 'rubygems'
 require 'mysql2'
 require 'rest-client'
+require 'colorize'
 
 
 
@@ -72,7 +73,7 @@ db = ARGV[3]
 dde_index = ARGV[4]
 
 if h.nil? || u.nil? || p.nil? || db.nil? || dde_index.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name dde_index"'
+  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name dde_index"'.colorize(:red)
   exit
 end
 

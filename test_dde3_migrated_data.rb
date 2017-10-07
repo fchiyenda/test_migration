@@ -4,6 +4,7 @@ require 'rubygems'
 require 'mysql2'
 require 'rest-client'
 require 'json'
+require 'colorize'
 
 def dbconnect(host,user,pwd,db)
   @cnn = Mysql2::Client.new(:host => "#{host}", :username => "#{user}",:password => "#{pwd}",:database => "#{db}")
@@ -85,7 +86,7 @@ cdbpwd = ARGV[5]
 cdb = ARGV[6]
 
 if h.nil? || u.nil? || p.nil? || dbname.nil? || cdb.nil? || cdbusr.nil? || cdbpwd.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name couchdbname" '
+  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name couchdbname" '.colorize(:red)
   exit
 end
 
