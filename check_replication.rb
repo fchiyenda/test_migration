@@ -18,8 +18,7 @@ def replication_status(u,p,src,dst)
   else
   	repli_id = status.map{|v|v['replication_id']}
 	  if !repli_id.include?("#{$rep_id}") then
-	  	 puts "I am here"
-		  	#start replication
+	  	 #start replication
 		  	begin
 		    	rep_id = RestClient.post("http://#{u}:#{p}@localhost:5984/_replicate","{\"source\":\"#{src}\",\"target\":\"#{dst}\", \"continuous\":true}",content_type: :json)
 		    	$rep_id = JSON.parse(rep_id)
