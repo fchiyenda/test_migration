@@ -8,7 +8,11 @@ def replication_status(u,p,src,dst)
   status = JSON.parse(check_replication_status)
   if status.size == 0 then
   	#start replication
+  begin
   	RestClient.post('http://localhost:5984/_replicate','{"source":"#{src}","target":"#{dst}", "continuous":true}',content_type: :json)
+  rescue => e
+  	raise e.inspect
+  end
   	@num += 1
   end
 end
