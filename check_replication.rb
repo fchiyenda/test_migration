@@ -8,12 +8,13 @@ def replication_status(u,p,src,dst)
   status = JSON.parse(check_replication_status)
   if status.size == 0 then
   	#start replication
-  begin
-  	RestClient.post('http://localhost:5984/_replicate','{"source":"#{src}","target":"#{dst}", "continuous":true}',content_type: :json)
-  rescue => e
-  	raise e.inspect
-  end
-  	@num += 1
+  	begin
+    	RestClient.post("http://#{u}:#{p}@localhost:5984/_replicate","{\"source\":\"#{src}\",\"target\":\"#{dst}\", \"continuous\":true}",content_type: :json)
+		rescue => e
+			puts e.response
+		end
+	
+   	$num += 1
   end
 end
 
@@ -23,9 +24,14 @@ src = ARGV[2]
 dst = ARGV[3]
 
 i = 0
-@num = 0
+a = ['|','/','-','\\']
+n = 0
+$num = 0
 while i != -1
-	sleep 60
+	sleep (1)
 	replication_status(u,p,src,dst)
-	printf("\r Restarted Replication: %.d times", @num)
+	n = 0 if n == 4 # reset n to zero if it has printed the last character
+
+	printf("\r Restarted Replication: %.d times Running status: %s", $num, a[n])
+	n += 1
 end
