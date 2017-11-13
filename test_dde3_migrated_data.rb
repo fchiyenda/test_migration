@@ -49,31 +49,22 @@ def get_source_data(h,u,p,dbname,cdbusr,cdbpwd,cdb)
     legacy_npids = legacy_npids.select{|z|z.size == 6}
     puts 'Combine legacy NPIDs with Primary'
     couchdb_npids  = primary_npids + legacy_npids
+    puts 'Calulating Primary ids that are also need to be stripped'
+    need_to_strip_ids = primary_npids & legacy_npids
 
   records_not_found = File.new('log/dde_not_found.log', 'w')
   tested_npids = File.new('log/dde_tested_npids.log', 'w')
-=begin
-  source_data.each do |row|
-    npid = row['value']
-	puts "Testing #{npid} ...record num #{i}"
-	tested_npids.syswrite("#{npid}\n")
-	unless couchdb_npids.include?("#{npid}") then
-	  puts couchdb_npids.include?("#{npid}")
-	  puts "#{npid} not found"
-	  records_not_found.syswrite("#{npid}\n")
-	  f += 1
-    end
-    i += 1
-  end
-=end
+  need_to_strip = File.new('log/dde_need_to_strip.log', 'w')
+
   puts 'Computing records not present in couchdb ...' 
   not_found_npids = mysql_npids - couchdb_npids
   #write results to File
   puts 'Writing results to File'
   tested_npids.syswrite("#{mysql_npids}")
   records_not_found.syswrite("#{not_found_npids}")
+  need_to_strip.syswrite("#{need_to_strip_ids}")
 
-  puts "Checked #{mysql_npids.length} records : records not found #{not_found_npids.length} "
+  puts "Checked #{mysql_npids.length} records : records not found #{not_found_npids.length} : records that need to be striped #{need_to_strip_ids.length}"
 end
 #Start program
 #Get parameters from terminal
