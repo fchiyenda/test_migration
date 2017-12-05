@@ -26,7 +26,7 @@ def get_source_data(h,u,p,dbname,couchdb)
   connect_to_mysqldb(h,u,p,dbname)
   puts 'Loading mysql data ....'
 
-  source_data = querydb("select value, data,p.updated_at from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null and value = 'KV00NU' group by value having not count(value) > 1")
+  source_data = querydb("select value, data,p.updated_at from national_patient_identifiers n left join people p on n.person_id = p.id where n.voided = 0 and data is not null group by value having not count(value) > 1")
 
   total_records = source_data.count
 
@@ -99,7 +99,6 @@ def get_source_data(h,u,p,dbname,couchdb)
 	  	mysql_client_data[key].each do |k,v|
 				if couchdb_data.key?('person_attributes') then
 					if key == 'attributes' then
-						puts 'I am in'
 						if couchdb_data['person_attributes'][k].to_s.strip != v.to_s.strip then
 							group_npids[k].push npid
 							n += 1
