@@ -53,7 +53,7 @@ def check_legacy_idz(h,u,p,dde_db,app_db,cdb)
       puts larry.inspect
       not_present_legacy_npids = larry.to_a - couchdb_data['patient']['identifiers'].to_a
       if not_present_legacy_npids.size != 0 then
-      	puts "Some legacy ids did not match for #{npid}"
+      	puts "Some legacy ids did not match for #{npid}" 
       	non_matched_legacy.syswrite("#{npid} did not match #{not_present_legacy_npids}\n")
         f += 1
       end
