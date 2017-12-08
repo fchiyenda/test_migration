@@ -49,18 +49,13 @@ def get_source_data(h,u,p,dbname,cdbusr,cdbpwd,cdb)
     legacy_npids = legacy_npids.select{|z|z.size == 6}
     puts 'Combine legacy NPIDs with Primary'
     couchdb_npids  = primary_npids + legacy_npids
-<<<<<<< HEAD
-    
-  records_not_found = File.new('log/dde_not_found.log', 'w')
-  tested_npids = File.new('log/dde_tested_npids.log', 'w')
-=======
+
     puts 'Calulating Primary ids that are also need to be stripped'
     need_to_strip_ids = primary_npids & legacy_npids
 
   records_not_found = File.new('log/dde_not_found.log', 'w')
   tested_npids = File.new('log/dde_tested_npids.log', 'w')
   need_to_strip = File.new('log/dde_need_to_strip.log', 'w')
->>>>>>> f81b327
 
   puts 'Computing records not present in couchdb ...' 
   not_found_npids = mysql_npids - couchdb_npids

@@ -44,8 +44,7 @@ def update_person_dob(person)
 	person['updated_at'] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
 
 	params = person.to_json
-	raise params.inspect
- 	#response = RestClient.put url,params,:content_type => 'application/json'
+	response = RestClient.put url,params,:content_type => 'application/json'
 end
 
 def update_date_estimates(h,u,p,couchdb)
@@ -57,10 +56,10 @@ def update_date_estimates(h,u,p,couchdb)
 	i = 0
 	n = 100000
 	lmt = 100000
-	$log_with_month = File.new("log/dde_update_bithdate_estimated_with_month.log", "w")
-	$log_with_out_month = File.new("log/dde_update_bithdate_estimated_with_out_month.log", "w")
-	$log_with_no_year = File.new("log/dde_update_bithdate_estimated_with_no_year.log", "w")
-	$log_missing_other = File.new("log/dde_update_bithdate_estimated_missing_other.log", "w")
+	$log_with_month = File.new("log/dde_update_birthdate_estimated_with_month_for_#{couchdb}_on_#{h}_#{Time.now.strftime("%Y-%m-%d")}.log","w")
+	$log_with_out_month = File.new("log/dde_update_birthdate_estimated_with_out_month_for_#{couchdb}_on_#{h}_#{Time.now.strftime("%Y-%m-%d")}.log", "w")
+	$log_with_no_year = File.new("log/dde_update_birthdate_estimated_with_no_year_for_#{couchdb}_on_#{h}_#{Time.now.strftime("%Y-%m-%d")}.log","w")
+	$log_missing_other = File.new("log/dde_update_birthdate_estimated_missing_other_for_#{couchdb}_on_#{h}_#{Time.now.strftime("%Y-%m-%d")}).log", "w")
 
  #Get total number of documents
  puts "Getting Total number of records"
@@ -83,7 +82,7 @@ def update_date_estimates(h,u,p,couchdb)
 		i += 100000
 		n += 100000
 	end
-  puts "NPIDS with Month: #{$with_month} NPIDS with out Month: #{$with_out_month} NPIDS missing year: #{with_no_year} NPIDS missing other: #{missing_other}"
+  puts "NPIDS with Month: #{$with_month} NPIDS with out Month: #{$with_out_month} NPIDS missing year: #{$with_no_year} NPIDS missing other: #{$missing_other}"
 end
 
 #Start program
