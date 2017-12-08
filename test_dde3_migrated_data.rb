@@ -56,7 +56,7 @@ def get_source_data(h,u,p,dbname,cdbusr,cdbpwd,cdb)
   records_not_found = File.new('log/dde_not_found.log', 'w')
   tested_npids = File.new('log/dde_tested_npids.log', 'w')
   need_to_strip = File.new('log/dde_need_to_strip.log', 'w')
-
+ 
   puts 'Computing records not present in couchdb ...' 
   not_found_npids = mysql_npids - couchdb_npids
   #write results to File
