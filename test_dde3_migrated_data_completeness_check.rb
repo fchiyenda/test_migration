@@ -63,16 +63,16 @@ def get_source_data(h,u,p,dbname,couchdb)
 
 
 		# Remove non required fields
-	if couchdb_data['names'].include?('family_name_code')
+	if couchdb_data['names'].include?(family_name_code)
 		couchdb_data['names'].delete('family_name_code')
 	end
-	if couchdb_data['names'].include?('given_name_code')
+	if couchdb_data['names'].include?(given_name_code)
 		couchdb_data['names'].delete('given_name_code')
 	end
-	if couchdb_data['names'].include?('middle_name')
+	if couchdb_data['names'].include?(middle_name)
 		couchdb_data['names'].delete('middle_name')
 	end
-	if couchdb_data['names'].include?('maiden_name')
+	if couchdb_data['names'].include?(maiden_name)
 		couchdb_data['names'].delete('maiden_name')
 	end
 
