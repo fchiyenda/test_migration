@@ -6,10 +6,10 @@ require 'json'
 require 'colorize'
 
 def update_person_dob(person)
-	#Check if day and month are both estimated
-	if person['birthdate'].include?('-') 
+#Check if day and month are both estimated
+if person['birthdate'].include?('-') 
 		check_date = person['birthdate'].split('-')
-	elsif person['birthdate'].include?('/')
+  elsif person['birthdate'].include?('/')
 		check_date = person['birthdate'].split('/')
 	end 
 
