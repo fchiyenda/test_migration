@@ -14,9 +14,9 @@ def get_all_couchdb_ids(h1,cdb1,h2,cdb2)
   count = RestClient.get("http://#{h1}:5984/#{cdb1}/_all_docs?skip=0&limit=1")
   cnt = JSON.parse(count)
 
-	while i <= 2 do 
+	while i <= cnt['total_rows'] do 
 		puts "Querying documents from #{h1} #{cdb1} from document #{i} to #{i + 200000}"
-		ids = RestClient.get("http://#{h1}:5984/#{cdb1}/_all_docs?skip=#{i}&limit=2")
+		ids = RestClient.get("http://#{h1}:5984/#{cdb1}/_all_docs?skip=#{i}&limit=200000")
 
 		puts "Parsing npid data"
 		npids = JSON.parse(ids)
@@ -38,9 +38,9 @@ def get_all_couchdb_ids(h1,cdb1,h2,cdb2)
 
   puts cnt['total_rows'].inspect
 
-	while n <= 2 do 
+	while n <= cnt['total_rows'] do 
 		puts "Querying documents from #{h2} #{cdb2} from document #{n} to #{n + 200000}"
-		ids = RestClient.get("http://#{h2}:5984/#{cdb2}/_all_docs?skip=#{n}&limit=2")
+		ids = RestClient.get("http://#{h2}:5984/#{cdb2}/_all_docs?skip=#{n}&limit=200000")
 
 		puts "Parsing npid data"
 		npids = JSON.parse(ids)
@@ -51,10 +51,9 @@ def get_all_couchdb_ids(h1,cdb1,h2,cdb2)
 		end
 		n += 200_000
 	end
-	puts "#{cdb1}: #{npid_array1}"
-	puts "#{cdb2}: #{npid_array2}"
+	
 	log = File.new("log/dump_doc_ids.log", "w")
-	log.syswrite("#{cdb1} - #{cdb2}: \n \n #{npid_array1 - npid_array2} \n \n #{cdb2} #{cdb1}: \n \n #{npid_array2 - npid_array1}")
+	log.syswrite("#{cdb1} - #{cdb2}: \n \n #{npid_array1 - npid_array2} \n \n #{cdb2} - #{cdb1}: \n \n #{npid_array2 - npid_array1}")
 	puts "(Documents in #{h1} #{cdb1} and not in #{h2} #{cdb2}: #{(npid_array1 - npid_array2).count}"
 	puts "(Documents in #{h2} #{cdb2} and not in #{h1} #{cdb1}: #{(npid_array2 - npid_array1).count}"
 end
