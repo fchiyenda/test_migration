@@ -53,10 +53,10 @@ def get_all_couchdb_ids(h1,cdb1,h2,cdb2)
 	end
 	puts "#{cdb1}: #{npid_array1}"
 	puts "#{cdb2}: #{npid_array2}"
-	log = File.new("log/dde_completeness_migration.log", "w")
-	log.syswrite("#{cdb1}: #{npid_array1} \n \n #{cdb2}: #{npid_array2}")
-	puts "(Documents in #{h1} #{cdb1} and not in #{cdb2}: #{(npid_array1 - npid_array2).count}"
-	puts "(Documents in #{h2} #{cdb2} and not in #{cdb1}: #{(npid_array2 - npid_array1).count}"
+	log = File.new("log/dump_doc_ids.log", "w")
+	log.syswrite("#{cdb1} - #{cdb2}: \n \n #{npid_array1 - npid_array2} \n \n #{cdb2} #{cdb1}: \n \n #{npid_array2 - npid_array1}")
+	puts "(Documents in #{h1} #{cdb1} and not in #{h2} #{cdb2}: #{(npid_array1 - npid_array2).count}"
+	puts "(Documents in #{h2} #{cdb2} and not in #{h1} #{cdb1}: #{(npid_array2 - npid_array1).count}"
 end
 
 h1 = ARGV[0]
