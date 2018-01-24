@@ -48,7 +48,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
         #puts "Checking #{npid}"
           tested_assigned << npid
           es_client = client.search index:'dde',type:'npids', body:{query:{match:{ national_id: npid}}}
-          npid_decimal_value = es_client['hits']['hits'][0]['_id']
+          npid_decimal_value = es_client['hits']['hits'][0]['_id'] rescue nil
 
          #puts 'Checked if it is marked as assigned'
           if es_client['hits']['hits'][0]['_source'].has_key?('assigned')
