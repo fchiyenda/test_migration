@@ -1,4 +1,4 @@
-  #!/usr/bin/ruby -w
+#!/usr/bin/ruby -w
 
 require 'rubygems'
 require 'mysql2'
@@ -14,15 +14,16 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
   unassigned_npids = []
   assigned_npids = []
   tested_assigned = []
+  unassigned_not_found = []
    
-  puts "Create view for query couchdb"
+  puts "Create view for querying couchdb"
     system("curl -X PUT http://#{cdbusr}:#{cdbpwd}@#{h}:5984/#{cdb}/_design/identifiers --data-binary @identifiers.json")    
                                                                                                                                                      
   puts 'Loading couchdb data ....'
     begin
-  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_design/identifiers/_view/get_all_identifiers")
+  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_design/identifiers/_view/get_all_identifiers/")
     rescue RestClient::ExceptionWithResponse
-	 end
+    end
 
  puts 'Parsing couchdb data ...'
     d = JSON.parse(doc)
@@ -30,6 +31,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
     puts 'Filtering all Primary NPIDs'
     primary_npids = d['rows'].map {|y|y['value']['id']}
     primary_npids = primary_npids.select{|r|r.size == 6}
+
     puts 'Filtering all legacy NPIDs'
     legacy_npids = d['rows'].map {|s|s['value']['identifiers']} 
     legacy_npids = legacy_npids.flatten
@@ -48,29 +50,38 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
         puts "Checking #{npid}"
           tested_assigned << npid
           es_client = client.search index:'dde',type:'npids', body:{query:{match:{ national_id: npid}}}
-          npid_decimal_value = es_client['hits']['hits'][0]['_id']
 
-         #puts 'Checked if it is marked as assigned'
-          if es_client['hits']['hits'][0]['_source'].has_key?('assigned')
-            if es_client['hits']['hits'][0]['_source']['assigned'] == true
+    if es_client['hits']['total'] == 0 #If NPID not found in NPID DB
+      #No record found in database
+      unassigned_not_found << npid
+    else
+      npid_decimal_value = es_client['hits']['hits'][0]['_id']
+
+      #puts 'Checked if it is marked as assigned'
+      if es_client['hits']['hits'][0]['_source'].has_key?('assigned')
+         if es_client['hits']['hits'][0]['_source']['assigned'] == true
                #puts 'OK!'
-               assigned_npids << npid
+               assigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
             else 
                #puts 'Something is wrong'
-               log.syswrite("NPID: #{npid} Decimal value: #{npid_decimal_value}")
-               unassigned_npids << npid
+               unassigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
             end
           else
             #puts 'Something is wrong'
-            log.syswrite("NPID: #{npid}  : Decimal value: #{npid_decimal_value} \n")
-            unassigned_npids << npid
+            unassigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
           end
           printf("\rPercentage complete: %.1f record %.d of %.d",(tested_assigned.length/primary_npids.length.to_f*100.0),tested_assigned.length,primary_npids.length)
       end
+    end
 
+  puts "Writing results to log"
+  
+  log.syswrite("NPIDs with Demographics but with no NPID record in NPID database: \n\n #{unassigned_not_found} \n\n\n\n\n NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids} \n\n\n\n\n NPIDS that are okey: #{assigned_npids} \n\n\n\n\n NPIDS tested: #{tested_assigned}")
 
-  puts "Assigned NPIDs: #{assigned_npids.length} : Unassigned #{unassigned_npids.length}"
+  puts "Assigned NPIDs: #{assigned_npids.length} : Unassigned #{unassigned_npids.length} : Unassigned not found: #{unassigned_not_found.length} : NPIDs tested: #{tested_assigned}"
 end
+
+
 #Start program
 #Get parameters from terminal
 h = ARGV[0]
@@ -79,7 +90,7 @@ cdbpwd = ARGV[2]
 cdb = ARGV[3]
 
 if h.nil? || cdb.nil? || cdbusr.nil? || cdbpwd.nil? then
-  puts 'Please execute command as "ruby test_dde3_migrated_data_v1.0.rb host_ip_address dde1_db_username dde1_db_password dde1_database_name couchdbname" '.colorize(:red)
+  puts 'Please execute command as "ruby unassigned_npid.rb.rb host_ip_address couchdb_username couchdb_password couchdb_person_database_name" '.colorize(:red)
   exit
 end
 
