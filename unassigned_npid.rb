@@ -36,6 +36,8 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
     legacy_npids = d['rows'].map {|s|s['value']['identifiers']} 
     legacy_npids = legacy_npids.flatten
     legacy_npids = legacy_npids.select{|z|z.size == 6}
+
+    all_npids = primary_npids + legacy_npids
     
     puts 'Check for unassigned primary_npids with person data'
       client = Elasticsearch::Client.new url: "http://#{h}:9200"
@@ -46,7 +48,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
       #raise couchdb_npid.inspect
 
 
-      primary_npids.uniq.each do |npid|
+      legacy_npids.uniq.each do |npid|
         puts "Checking #{npid}"
           tested_assigned << npid
           es_client = client.search index:'dde',type:'npids', body:{query:{match:{ national_id: npid}}}
@@ -70,7 +72,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
             #puts 'Something is wrong'
             unassigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
           end
-          printf("\rPercentage complete: %.1f record %.d of %.d",(tested_assigned.length/primary_npids.length.to_f*100.0),tested_assigned.length,primary_npids.length)
+          printf("\rPercentage complete: %.1f record %.d of %.d",(tested_assigned.length/all_npids.uniq.length.to_f*100.0),tested_assigned.length,all_npids.uniq.length)
       end
     end
 
