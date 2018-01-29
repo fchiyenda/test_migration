@@ -46,9 +46,9 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
       #couchdb_npid = JSON.parse(couchdb_npid)
 
       #raise couchdb_npid.inspect
+    all_npids.uniq! #Convert to uniq
 
-
-      legacy_npids.uniq.each do |npid|
+      all_npids.each do |npid|
         puts "Checking #{npid}"
           tested_assigned << npid
           es_client = client.search index:'dde',type:'npids', body:{query:{match:{ national_id: npid}}}
@@ -72,7 +72,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
             #puts 'Something is wrong'
             unassigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
           end
-          printf("\rPercentage complete: %.1f record %.d of %.d",(tested_assigned.length/all_npids.uniq.length.to_f*100.0),tested_assigned.length,all_npids.uniq.length)
+          printf("\rPercentage complete: %.1f record %.d of %.d",(tested_assigned.length/all_npids.length.to_f*100.0),tested_assigned.length,all_npids.length)
       end
     end
 
