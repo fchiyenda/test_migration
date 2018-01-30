@@ -21,7 +21,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
                                                                                                                                                      
   puts 'Loading couchdb data ....'
     begin
-  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_design/identifiers/_view/get_all_identifiers/")
+  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_design/identifiers/_view/get_all_identifiers?limit=4500")
     rescue RestClient::ExceptionWithResponse
     end
 
@@ -37,7 +37,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
     legacy_npids = legacy_npids.flatten
     legacy_npids = legacy_npids.select{|z|z.size == 6}
 
-    all_npids = primary_npids + legacy_npids
+    all_npids = primary_npids
     
     puts 'Check for unassigned primary_npids with person data'
       client = Elasticsearch::Client.new url: "http://#{h}:9200"
@@ -48,34 +48,57 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
       #raise couchdb_npid.inspect
     all_npids.uniq! #Convert to uniq
 
-      all_npids.each do |npid|
+    all_npids.each do |npid|
         puts "Checking #{npid}"
           tested_assigned << npid
           es_client = client.search index:'dde',type:'npids', body:{query:{match:{ national_id: npid}}}
 
-        if es_client['hits']['total'] == 0 #If NPID not found in NPID DB
-          #No record found in database
-          unassigned_not_found << npid
+      if es_client['hits']['total'] == 0 #If NPID not found in NPID DB
+        #No record found in database
+        unassigned_not_found << npid
+      else
+        npid_decimal_value = es_client['hits']['hits'][0]['_id']
+        #puts 'Checked if it is marked as assigned'
+        if es_client['hits']['hits'][0]['_source'].has_key?('assigned')
+            if es_client['hits']['hits'][0]['_source']['assigned'] == true
+              #puts 'OK!'
+              assigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
+            else 
+              #puts 'Something is wrong'
+              unassigned_npids << npid_decimal_value
+            end
         else
-          npid_decimal_value = es_client['hits']['hits'][0]['_id']
-
-          #puts 'Checked if it is marked as assigned'
-          if es_client['hits']['hits'][0]['_source'].has_key?('assigned')
-             if es_client['hits']['hits'][0]['_source']['assigned'] == true
-                #puts 'OK!'
-                assigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
-             else 
-             #puts 'Something is wrong'
-                unassigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
-             end
-          else
-            #puts 'Something is wrong'
-            unassigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
-          end
-              printf("\rPercentage complete: %.1f record %.d of %.d",(tested_assigned.length/all_npids.length.to_f*100.0),tested_assigned.length,all_npids.length)
+          #puts 'Something is wrong'
+          unassigned_npids << npid_decimal_value
         end
+          printf("\rPercentage complete: %.1f record %.d of %.d",(tested_assigned.length/all_npids.length.to_f*100.0),tested_assigned.length,all_npids.length)
       end
+    end
 
+  unassigned_npids.uniq!
+  
+  puts 'Fixing affected IDs' 
+    count = []
+    puts unassigned_npids.inspect
+
+    unassigned_npids.each do |fix_npid|
+      count << fix_npid
+      puts "#{count.length} of #{unassigned_npids.length} : #{(count.length/unassigned_npids.length) * 100}%"
+
+      npid_to_fix = RestClient.get("http://#{h}:5984/#{cdb.gsub('_person','')}/#{fix_npid}")
+      url = "http://#{h}:5984/#{cdb.gsub('_person','')}/#{fix_npid}"
+      npid_to_fix = JSON.parse(npid_to_fix)
+
+      npid_to_fix['assigned'] = true
+      npid_to_fix['updated_at'] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+      npid_to_fix['update_by'] = 'admin'
+      params = npid_to_fix.to_json
+
+      response = RestClient.put url,params,:content_type => 'application/json'
+
+      raise params.inspect if fix_npid == "30701400"
+
+    end
   puts "Writing results to log"
   
   log.syswrite("NPIDs with Demographics but with no NPID record in NPID database: \n\n #{unassigned_not_found} \n\n\n\n\n NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids} \n\n\n\n\n NPIDS that are okey: #{assigned_npids} \n\n\n\n\n NPIDS tested: #{tested_assigned}")
