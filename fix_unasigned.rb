@@ -21,7 +21,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
                                                                                                                                                      
   puts 'Loading couchdb data ....'
     begin
-  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_design/identifiers/_view/get_all_identifiers?limit=4500")
+  	  doc = RestClient.get("http://#{h}:5984/#{cdb}/_design/identifiers/_view/get_all_identifiers")
     rescue RestClient::ExceptionWithResponse
     end
 
