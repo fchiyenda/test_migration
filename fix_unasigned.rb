@@ -49,7 +49,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
     all_npids.uniq! #Convert to uniq
 
     all_npids.each do |npid|
-        puts "Checking #{npid}"
+        puts " Checking #{npid}"
           tested_assigned << npid
           es_client = client.search index:'dde',type:'npids', body:{query:{match:{ national_id: npid}}}
 
@@ -83,7 +83,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
 
     unassigned_npids.each do |fix_npid|
       count << fix_npid
-      puts "#{count.length} of #{unassigned_npids.length} : #{(count.length/unassigned_npids.length) * 100}%"
+      puts "#{count.length} of #{unassigned_npids.length} : #{(count.length/unassigned_npids.length.to_f) * 100}%"
 
       npid_to_fix = RestClient.get("http://#{h}:5984/#{cdb.gsub('_person','')}/#{fix_npid}")
       url = "http://#{h}:5984/#{cdb.gsub('_person','')}/#{fix_npid}"
@@ -91,7 +91,6 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
 
       npid_to_fix['assigned'] = true
       npid_to_fix['updated_at'] = Time.now.strftime("%Y-%m-%d %H:%M:%S")
-      npid_to_fix['update_by'] = 'admin'
       params = npid_to_fix.to_json
 
       RestClient.put url,params,:content_type => 'application/json'
