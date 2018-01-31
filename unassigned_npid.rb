@@ -72,7 +72,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
             #puts 'Something is wrong'
             unassigned_npids << "NPID: #{npid}  : Decimal value: #{npid_decimal_value}"
           end
-              printf("\rPercentage complete: %.1f record %.d of %.d",(tested_assigned.length/all_npids.length.to_f*100.0),tested_assigned.length,all_npids.length)
+              printf("\rPercentage complete: %.1f record %.d of %.d ",(tested_assigned.length/all_npids.length.to_f*100.0),tested_assigned.length,all_npids.length)
         end
       end
 

@@ -10,7 +10,7 @@ require 'elasticsearch'
 
 def get_source_data(h,cdbusr,cdbpwd,cdb)
 
-  log = File.new('log/unassigned.log', 'w')
+  log = File.new('log/fix_unassigned.log', 'w')
   unassigned_npids = []
   assigned_npids = []
   tested_assigned = []
@@ -96,12 +96,18 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
 
       RestClient.put url,params,:content_type => 'application/json'
 
-      raise params.inspect if fix_npid == "30701400"
-
     end
   puts "Writing results to log"
   
-  log.syswrite("NPIDs with Demographics but with no NPID record in NPID database: \n\n #{unassigned_not_found} \n\n\n\n\n NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids} \n\n\n\n\n NPIDS that are okey: #{assigned_npids} \n\n\n\n\n NPIDS tested: #{tested_assigned}")
+  log.syswrite("Summary: \n\n 
+                NPIDs with Demographics but with no NPID record in NPID database: #{unassigned_not_found.length} \n\n
+                NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids.length} \n\n
+                NPIDS that are okey: #{assigned_npids.length} \n\n 
+                NPIDS tested: #{tested_assigned.length} \n\n
+                NPIDs with Demographics but with no NPID record in NPID database: \n\n #{unassigned_not_found} \n\n\n\n\n 
+                NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids} \n\n\n\n\n 
+                NPIDS that are okey: #{assigned_npids} \n\n\n\n\n 
+                NPIDS tested: #{tested_assigned}")
 
   puts "Assigned NPIDs: #{assigned_npids.length} : Unassigned #{unassigned_npids.length} : Unassigned not found: #{unassigned_not_found.length} : NPIDs tested: #{tested_assigned.length}"
 end
