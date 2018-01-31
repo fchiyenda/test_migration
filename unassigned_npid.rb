@@ -80,7 +80,6 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
   
   log.syswrite("Summary: \n\n 
                 NPIDs with Demographics but with no NPID record in NPID database: #{unassigned_not_found.length} \n\n
-                NPIDs with Demographics but with no NPID record in NPID database: #{unassigned_not_found.length} \n\n
                 NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids.length} \n\n
                 NPIDS that are okey: #{assigned_npids.length} \n\n 
                 NPIDS tested: #{tested_assigned.length} \n\n
