@@ -94,7 +94,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
       npid_to_fix['update_by'] = 'admin'
       params = npid_to_fix.to_json
 
-      response = RestClient.put url,params,:content_type => 'application/json'
+      RestClient.put url,params,:content_type => 'application/json'
 
       raise params.inspect if fix_npid == "30701400"
 

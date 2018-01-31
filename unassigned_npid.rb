@@ -37,7 +37,7 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
     legacy_npids = legacy_npids.flatten
     legacy_npids = legacy_npids.select{|z|z.size == 6}
 
-    all_npids = primary_npids + legacy_npids
+    all_npids = primary_npids
     
     puts 'Check for unassigned primary_npids with person data'
       client = Elasticsearch::Client.new url: "http://#{h}:9200"
@@ -78,7 +78,16 @@ def get_source_data(h,cdbusr,cdbpwd,cdb)
 
   puts "Writing results to log"
   
-  log.syswrite("NPIDs with Demographics but with no NPID record in NPID database: \n\n #{unassigned_not_found} \n\n\n\n\n NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids} \n\n\n\n\n NPIDS that are okey: #{assigned_npids} \n\n\n\n\n NPIDS tested: #{tested_assigned}")
+  log.syswrite("Summary: \n\n 
+                NPIDs with Demographics but with no NPID record in NPID database: #{unassigned_not_found.length} \n\n
+                NPIDs with Demographics but with no NPID record in NPID database: #{unassigned_not_found.length} \n\n
+                NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids.length} \n\n
+                NPIDS that are okey: #{assigned_npids.length} \n\n 
+                NPIDS tested: #{tested_assigned.length} \n\n
+                NPIDs with Demographics but with no NPID record in NPID database: \n\n #{unassigned_not_found} \n\n\n\n\n 
+                NPIDs that has Demographics but NPID is not flagged as assigned: #{unassigned_npids} \n\n\n\n\n 
+                NPIDS that are okey: #{assigned_npids} \n\n\n\n\n 
+                NPIDS tested: #{tested_assigned}")
 
   puts "Assigned NPIDs: #{assigned_npids.length} : Unassigned #{unassigned_npids.length} : Unassigned not found: #{unassigned_not_found.length} : NPIDs tested: #{tested_assigned.length}"
 end
